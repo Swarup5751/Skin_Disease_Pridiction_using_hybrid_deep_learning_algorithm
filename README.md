@@ -1,161 +1,273 @@
-🧠 Skin Disease Prediction using Hybrid Deep Learning (ResNet50 + ViT)
-📌 Overview
+# 🧠 Skin Disease Prediction using Hybrid Deep Learning
 
-This project presents a Hybrid Deep Learning Architecture combining ResNet50 (CNN) and Vision Transformer (ViT-B16) for multi-class skin lesion classification using the HAM10000 dataset.
+## ResNet50 + Vision Transformer (ViT-B16)
 
-The model leverages:
+---
 
-🧩 Local feature extraction (ResNet50)
+## 📌 Overview
 
-🌍 Global contextual modeling (Vision Transformer)
+This project presents a **Hybrid Deep Learning Architecture** that combines:
 
-🔗 Feature fusion for improved classification
+* **ResNet50 (CNN)** → Local spatial & texture feature extraction
+* **Vision Transformer (ViT-B16)** → Global contextual modeling using self-attention
 
-📄 Project Report: 
+The model performs **7-class skin lesion classification** using the **HAM10000 dataset** and achieves high accuracy with improved performance on rare lesion types.
 
-Blackbook_final_G12_BtechIT
+This work was developed as part of a B.Tech Capstone Project (Information Technology).
 
+---
 
-📄 Research Paper: 
+## 📊 Dataset
 
-research_paper
+**Dataset Used:** HAM10000 (Human Against Machine with 10,000 training images)
 
-📊 Dataset
+* Total original images: 10,015
+* Number of classes: 7
 
-HAM10000 Dataset
+### Classes:
 
-Total images: 10,015
+1. Melanocytic Nevi
+2. Melanoma
+3. Benign Keratosis
+4. Basal Cell Carcinoma
+5. Actinic Keratoses
+6. Vascular Lesions
+7. Dermatofibroma
 
-Classes: 7
+---
 
-Melanocytic Nevi
+## ⚖ Dataset Balancing
 
-Melanoma
+The dataset was highly imbalanced (>65% Nevi class).
 
-Benign Keratosis
+To handle this:
 
-Basal Cell Carcinoma
+* Data augmentation applied to minority classes:
 
-Actinic Keratoses
+  * Random rotation (±25°)
+  * Horizontal/vertical flip
+  * Zoom (0.8–1.2x)
+  * Brightness adjustment
+  * Width/height shift
+* Controlled reduction of majority class
 
-Vascular Lesions
+### Final Balanced Dataset:
 
-Dermatofibroma
+* 1,500 images per class
+* Total images after balancing: **10,500**
 
-⚖ Class Balancing
+---
 
-Augmentation applied to minority classes
+# 🏗 Model Architecture
 
-Final balanced dataset:
+## 🔹 Input Preprocessing
 
-1,500 images per class
+* Image Size: **224 × 224 × 3**
+* Normalization: ImageNet mean & standard deviation
+* Pixel scaling: 0–1 range
 
-Total: 10,500 images
+---
 
-🏗 Model Architecture
-🔹 Input
+## 🔹 Hybrid Architecture
 
-Image size: 224 × 224 × 3
+### 1️⃣ ResNet50 Branch
 
-Normalization: ImageNet mean & std
+* Pretrained on ImageNet
+* `include_top=False`
+* Global Average Pooling
+* Output Feature Size: **2048**
+* Activation: ReLU (internal layers)
 
-Augmentation:
+Purpose:
 
-Rotation (±25°)
+* Extract fine-grained local spatial features
+* Capture texture and lesion patterns
 
-Flip
+---
 
-Zoom (0.8–1.2)
+### 2️⃣ Vision Transformer (ViT-B16)
 
-Brightness adjustment
+* Patch size: 16 × 16
+* Multi-head self-attention (12 heads)
+* Transformer encoder blocks
+* Output Feature Size: **768**
 
-Width/height shift
+Purpose:
 
-🔹 Hybrid Architecture
-1️⃣ ResNet50 Branch
+* Capture global contextual relationships
+* Model long-range spatial dependencies
 
-Pretrained on ImageNet
+---
 
-include_top=False
+### 3️⃣ Feature Fusion
 
-Global Average Pooling
+```
+2048 (ResNet) + 768 (ViT) = 2816-dimensional feature vector
+```
 
-Output: 2048-dimensional feature vector
+Features are concatenated and passed to dense layers.
 
-Activation used internally: ReLU
+---
 
-2️⃣ Vision Transformer (ViT-B16)
+### 4️⃣ Classification Head
 
-Patch size: 16 × 16
-
-Multi-head self-attention: 12 heads
-
-Transformer encoder blocks
-
-Output: 768-dimensional feature vector
-
-3️⃣ Feature Fusion
-
-Concatenation Layer
-
-Final feature size:
-
-2048 (ResNet) + 768 (ViT) = 2816 features
-4️⃣ Classification Head
+```
 Dense(512, activation='relu')
 Dropout(0.3)
 Dense(7, activation='softmax')
-⚙ Training Configuration
-Parameter	Value
-Optimizer	Adam
-Learning Rate	1e-4
-Weight Decay	1e-5
-Batch Size	32
-Epochs	25
-Loss Function	Categorical Crossentropy
-Early Stopping	Patience = 10
-Train Split	70%
-Validation Split	15%
-Test Split	15%
-GPU	NVIDIA A100 (Google Colab Pro)
-📈 Model Performance
-✅ Final Metrics
-Metric	Value
-Test Accuracy	95.6%
-Macro F1 Score	0.91
-ROC-AUC	0.93
-📌 Improvements Over Single Models
+```
 
-Better rare class detection
+Output: 7-class probability distribution
 
-Higher Dermatofibroma & Vascular Lesion recall
+---
 
-Reduced class imbalance bias
+# ⚙ Training Configuration
 
-🖥 Web Application
+| Parameter        | Value                      |
+| ---------------- | -------------------------- |
+| Optimizer        | Adam                       |
+| Learning Rate    | 1e-4                       |
+| Weight Decay     | 1e-5                       |
+| Batch Size       | 32                         |
+| Epochs           | 25                         |
+| Loss Function    | Categorical Crossentropy   |
+| Early Stopping   | Patience = 10              |
+| Train Split      | 70%                        |
+| Validation Split | 15%                        |
+| Test Split       | 15%                        |
+| GPU Used         | NVIDIA A100 (Google Colab) |
 
-Built using Flask:
+---
 
-Upload dermoscopy image
+# 📈 Model Performance
 
-Real-time prediction
+| Metric         | Value |
+| -------------- | ----- |
+| Test Accuracy  | ~95%  |
+| Macro F1 Score | 0.91  |
+| ROC-AUC (Mean) | 0.93  |
 
-Confidence score display
+### Improvements Observed:
 
-📊 Evaluation Metrics
+* Better rare class detection (Dermatofibroma & Vascular Lesions)
+* Reduced class imbalance bias
+* Improved generalization compared to single-model baselines
 
-Accuracy
+---
 
-Precision
+# 📊 Evaluation Metrics
 
-Recall
+* Accuracy
+* Precision
+* Recall
+* F1-Score
+* Confusion Matrix
+* ROC Curve
+* Saliency Maps
+* Attention Heatmaps
 
-F1-score
+---
 
-Confusion Matrix
+# 🌐 Web Application (Flask Deployment)
 
-ROC Curve
+The trained model is deployed using **Flask** for real-time inference.
 
-Saliency Maps
+Features:
 
-Attention Heatmaps
+* Upload dermoscopic image
+* Predict disease class
+* Display confidence score
+* Visual output interface
+
+---
+
+# 📁 Project Structure
+
+```
+Skin_Disease_Prediction/
+│
+├── capston.py
+├── Capston.ipynb
+├── app.py
+├── my_model.h5
+├── README.md
+│
+├── static/
+├── templates/
+│
+├── research_paper.pdf
+└── Blackbook_final_G12_BtechIT.pdf
+```
+
+---
+
+# 🚀 How To Run
+
+### 1️⃣ Clone Repository
+
+```
+git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
+cd REPO_NAME
+```
+
+### 2️⃣ Install Dependencies
+
+```
+pip install -r requirements.txt
+```
+
+### 3️⃣ Run Flask App
+
+```
+python app.py
+```
+
+---
+
+# 🧪 Technologies Used
+
+* Python 3.8+
+* TensorFlow / Keras
+* vit_keras
+* OpenCV
+* scikit-learn
+* Flask
+* Matplotlib
+* Seaborn
+* Google Colab
+
+---
+
+# 💡 Key Contributions
+
+✔ Hybrid CNN + Transformer architecture
+✔ Improved rare lesion classification
+✔ Class imbalance handling
+✔ Interpretability through attention visualization
+✔ Reproducible training pipeline
+✔ Real-time deployment
+
+---
+
+# 🔮 Future Work
+
+* Cross-dataset validation (ISIC 2018 / 2019)
+* Multi-modal integration (clinical metadata)
+* Lightweight mobile model
+* Edge deployment optimization
+* Larger dermatology dataset testing
+
+---
+
+# 👨‍💻 Author
+
+**Swarup Sonawane**
+B.Tech – Information Technology
+SVKM’s NMIMS, Shirpur
+
+---
+
+# ⭐ If You Found This Project Useful
+
+Please consider giving it a ⭐ on GitHub.
+
